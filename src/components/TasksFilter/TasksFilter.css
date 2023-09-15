@@ -1,0 +1,28 @@
+.filter {
+  display: inline;
+  cursor: default;
+  font-size: 15px;
+  border-bottom: none;
+}
+
+.filter button {
+  display: inline-block;
+  color: inherit;
+  margin: 3px;
+  padding: 3px 7px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.filter button:not(.selected) {
+  cursor: pointer;
+}
+
+.filter:hover button {
+  border-color: rgba(175, 47, 47, 0.1);
+}
+
+.filter button.selected {
+  border-color: rgba(175, 47, 47, 0.2);
+}
