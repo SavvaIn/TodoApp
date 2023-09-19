@@ -10,7 +10,7 @@ class Task extends Component {
     super(props);
     this.state = {
       inputValue: this.props.taskDescription,
-      taskDatePassed: this.formatTaskDatePassed(this.props.taskDateCreated),
+      taskDatePassed: `created ${this.formatTaskDatePassed(this.props.taskDateCreated)}`,
     };
     this.interval = null;
   }
@@ -36,7 +36,7 @@ class Task extends Component {
     const newTaskDatePassed = this.formatTaskDatePassed(taskDateCreated);
 
     this.setState({
-      taskDatePassed: newTaskDatePassed,
+      taskDatePassed: `created ${newTaskDatePassed}`,
     });
   };
 
