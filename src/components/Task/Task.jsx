@@ -2,14 +2,15 @@ import { Component } from 'react';
 import PropTypes from 'prop-types';
 import { formatDistanceToNow } from 'date-fns';
 
+import { FILTER_ALL, FILTER_ACTIVE, FILTER_COMPLETED } from '../../assets/constants';
 import './Task.css';
 
-export default class Task extends Component {
+class Task extends Component {
   constructor(props) {
     super(props);
     this.state = {
       inputValue: this.props.taskDescription,
-      taskDatePassed: 'created less than 5 seconds ago',
+      taskDatePassed: this.formatTaskDatePassed(this.props.taskDateCreated),
     };
     this.interval = null;
   }
@@ -22,16 +23,20 @@ export default class Task extends Component {
     clearInterval(this.interval);
   }
 
-  updateTaskDatePassed = () => {
-    const { taskDateCreated } = this.props;
-
-    const newTaskDatePassed = formatDistanceToNow(taskDateCreated, {
+  formatTaskDatePassed = (dateCreated) => {
+    return formatDistanceToNow(dateCreated, {
       addSuffix: true,
       includeSeconds: true,
     });
+  };
+
+  updateTaskDatePassed = () => {
+    const { taskDateCreated } = this.props;
+
+    const newTaskDatePassed = this.formatTaskDatePassed(taskDateCreated);
 
     this.setState({
-      taskDatePassed: `created ${newTaskDatePassed}`,
+      taskDatePassed: newTaskDatePassed,
     });
   };
 
@@ -44,7 +49,7 @@ export default class Task extends Component {
   handleTaskClick = () => {
     const { id, taskStatus, taskDescription, onTaskChange } = this.props;
 
-    const newTaskStatus = taskStatus === 'active' ? 'completed' : 'active';
+    const newTaskStatus = taskStatus === FILTER_ACTIVE ? FILTER_COMPLETED : FILTER_ALL;
     onTaskChange(id, newTaskStatus, taskDescription);
   };
 
@@ -53,13 +58,13 @@ export default class Task extends Component {
     const { inputValue } = this.state;
 
     event.preventDefault();
-    onTaskChange(id, 'active', inputValue);
+    onTaskChange(id, FILTER_ACTIVE, inputValue);
   };
 
   handleShowEdit = () => {
     const { id, taskStatus, taskDescription, onTaskChange } = this.props;
 
-    if (taskStatus === 'active') {
+    if (taskStatus === FILTER_ACTIVE) {
       onTaskChange(id, 'editing', taskDescription);
     }
   };
@@ -105,3 +110,5 @@ Task.propTypes = {
   onTaskChange: PropTypes.func.isRequired,
   onTaskDelete: PropTypes.func.isRequired,
 };
+
+export { Task };

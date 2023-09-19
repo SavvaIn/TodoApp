@@ -3,22 +3,23 @@ import { nanoid } from 'nanoid';
 
 import './App.css';
 
-import NewTaskForm from '../NewTaskForm/NewTaskForm';
-import TaskList from '../TaskList/TaskList';
-import Footer from '../Footer/Footer';
+import { NewTaskForm } from '../NewTaskForm/NewTaskForm';
+import { TaskList } from '../TaskList/TaskList';
+import { Footer } from '../Footer/Footer';
+import { FILTER_ALL, FILTER_ACTIVE, FILTER_COMPLETED } from '../../assets/constants';
 
 export default class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       tasksData: [],
-      filterStatus: 'all',
+      filterStatus: FILTER_ALL,
     };
   }
 
   deleteTask = (id) => {
     this.setState(({ tasksData }) => {
-      const idx = tasksData.findIndex((item) => item.id === id);
+      const idx = tasksData.findIndex((task) => task.id === id);
 
       const updatedTasksData = [...tasksData.slice(0, idx), ...tasksData.slice(idx + 1)];
 
@@ -33,7 +34,7 @@ export default class App extends Component {
       const newTask = {
         id: nanoid(),
         taskDescription: value,
-        taskStatus: 'active',
+        taskStatus: FILTER_ACTIVE,
         taskDateCreated: new Date().getTime(),
       };
 
@@ -47,7 +48,7 @@ export default class App extends Component {
 
   changeTask = (id, taskStatus, taskDescription) => {
     this.setState(({ tasksData }) => {
-      const idx = tasksData.findIndex((item) => item.id === id);
+      const idx = tasksData.findIndex((task) => task.id === id);
       const updatedTasksData = [...tasksData];
       updatedTasksData[idx].taskStatus = taskStatus;
       updatedTasksData[idx].taskDescription = taskDescription;
@@ -60,7 +61,7 @@ export default class App extends Component {
 
   clearCompletedTasks = () => {
     this.setState(({ tasksData }) => {
-      const updatedTasksData = tasksData.filter((item) => item.taskStatus !== 'completed');
+      const updatedTasksData = tasksData.filter((tasks) => tasks.taskStatus !== FILTER_COMPLETED);
 
       return {
         tasksData: updatedTasksData,
@@ -76,11 +77,11 @@ export default class App extends Component {
 
   getFilteredTasks = () => {
     const { tasksData, filterStatus } = this.state;
-    if (filterStatus === 'active') {
-      return tasksData.filter((item) => item.taskStatus === 'active');
+    if (filterStatus === FILTER_ACTIVE) {
+      return tasksData.filter((tasks) => tasks.taskStatus === FILTER_ACTIVE);
     }
-    if (filterStatus === 'completed') {
-      return tasksData.filter((item) => item.taskStatus === 'completed');
+    if (filterStatus === FILTER_COMPLETED) {
+      return tasksData.filter((tasks) => tasks.taskStatus === FILTER_COMPLETED);
     }
     return tasksData;
   };
@@ -88,7 +89,7 @@ export default class App extends Component {
   render() {
     const { tasksData, filterStatus } = this.state;
 
-    const tasksLeft = tasksData.filter((item) => item.taskStatus !== 'completed').length;
+    const tasksLeft = tasksData.filter((task) => task.taskStatus !== FILTER_COMPLETED).length;
 
     const filteredTasks = this.getFilteredTasks();
 

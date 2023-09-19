@@ -1,23 +1,28 @@
 import PropTypes from 'prop-types';
-
+import classNames from 'classnames';
 import './Footer.css';
-import TasksFilter from '../TasksFilter/TasksFilter';
 
-const filterOptions = [
-  { name: 'all', label: 'All' },
-  { name: 'active', label: 'Active' },
-  { name: 'completed', label: 'Completed' },
-];
+import { TasksFilter } from '../TasksFilter/TasksFilter';
+import { FILTER_ALL, FILTER_ACTIVE, FILTER_COMPLETED } from '../../assets/constants';
 
 function Footer({ currentFilter, tasksLeft, onClearCompleted, onFilterChange }) {
+  const filterOptions = [
+    { name: FILTER_ALL, label: 'All' },
+    { name: FILTER_ACTIVE, label: 'Active' },
+    { name: FILTER_COMPLETED, label: 'Completed' },
+  ];
+
   const filterElements = filterOptions.map(({ name, label }) => {
     const isActive = name === currentFilter;
-    const className = isActive ? 'selected' : '';
+
+    const filterClass = classNames({
+      selected: isActive,
+    });
 
     return (
       <TasksFilter
         key={name}
-        className={className}
+        className={filterClass}
         name={label}
         onFilterChange={() => {
           onFilterChange(name);
@@ -38,10 +43,10 @@ function Footer({ currentFilter, tasksLeft, onClearCompleted, onFilterChange }) 
 }
 
 Footer.propTypes = {
-  filterStatus: PropTypes.string.isRequired,
+  currentFilter: PropTypes.string.isRequired,
   tasksLeft: PropTypes.number.isRequired,
   onClearCompleted: PropTypes.func.isRequired,
   onFilterChange: PropTypes.func.isRequired,
 };
 
-export default Footer;
+export { Footer };

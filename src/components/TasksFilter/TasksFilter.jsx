@@ -17,9 +17,9 @@ function TasksFilter({ className, name, onFilterChange }) {
 }
 
 TasksFilter.propTypes = {
-  className: PropTypes.string.isRequired,
+  className: PropTypes.string,
   name: PropTypes.string.isRequired,
   onFilterChange: PropTypes.func.isRequired,
 };
 
-export default TasksFilter;
+export { TasksFilter };

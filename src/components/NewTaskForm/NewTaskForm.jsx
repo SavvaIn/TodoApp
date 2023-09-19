@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import './NewTaskForm.css';
 
-export default class NewTaskForm extends Component {
+class NewTaskForm extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -14,9 +14,11 @@ export default class NewTaskForm extends Component {
   createNewTask = (event) => {
     event.preventDefault();
     const { inputValue } = this.state;
-    const { onAddNewTask } = this.props;
 
-    onAddNewTask(inputValue);
+    if (inputValue.trim() !== '') {
+      const { onAddNewTask } = this.props;
+      onAddNewTask(inputValue);
+    }
 
     this.setState({
       inputValue: '',
@@ -39,7 +41,6 @@ export default class NewTaskForm extends Component {
           placeholder="What needs to be done?"
           onChange={this.handleValueChange}
           required
-          pattern="^[^\s]+(\s.*)?$"
           title="Field must not be empty"
           value={inputValue}
         />
@@ -51,3 +52,5 @@ export default class NewTaskForm extends Component {
 NewTaskForm.propTypes = {
   onAddNewTask: PropTypes.func.isRequired,
 };
+
+export { NewTaskForm };
