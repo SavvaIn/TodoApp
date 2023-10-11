@@ -1,41 +1,55 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 
-import './TaskList.css';
-import { Task } from '../Task/Task';
+import Task from '../Task';
 
-function TaskList({ tasksData, onTaskDelete, onTaskChange }) {
-  const taskElements = tasksData.map((tasks) => {
-    const { id, taskDescription, taskStatus, taskDateCreated } = tasks;
-
-    return (
-      <Task
-        key={id}
-        id={id}
-        taskDescription={taskDescription}
-        taskStatus={taskStatus}
-        taskDateCreated={taskDateCreated}
-        onTaskDelete={() => {
-          onTaskDelete(id);
-        }}
-        onTaskChange={onTaskChange}
-      />
-    );
-  });
-
-  return <ul className="todo-list">{taskElements}</ul>;
+function TaskList({ todoItem, onDeleted, onToggleDone, onChangeLabel, onStartTimer, onStopTimer }) {
+  return (
+    <ul className="todo-list">
+      {todoItem.map((item) => (
+        <Task
+          status={item.status}
+          key={item.id}
+          label={item.label}
+          minutes={item.minutes}
+          seconds={item.seconds}
+          onDeleted={() => onDeleted(item.id)}
+          onToggleDone={() => onToggleDone(item.id)}
+          done={item.done}
+          onChangeLabel={(label) => onChangeLabel(item.id, label)}
+          created={item.created}
+          onStartTimer={() => onStartTimer(item.id)}
+          onStopTimer={() => onStopTimer(item.id)}
+        />
+      ))}
+    </ul>
+  );
 }
 
-TaskList.propTypes = {
-  tasksData: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string,
-      taskDescription: PropTypes.string,
-      taskStatus: PropTypes.string,
-      taskDateCreated: PropTypes.number,
-    })
-  ).isRequired,
-  onTaskDelete: PropTypes.func.isRequired,
-  onTaskChange: PropTypes.func.isRequired,
+TaskList.defaultProps = {
+  todoItem: [],
+  onDeleted: () => {},
+  onToggleDone: () => {},
+  onChangeLabel: () => {},
+  onStartTimer: () => {},
+  onStopTimer: () => {},
 };
 
-export { TaskList };
+TaskList.propTypes = {
+  todoItem: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      status: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      done: PropTypes.bool.isRequired,
+      created: PropTypes.instanceOf(Date),
+    })
+  ),
+  onDeleted: PropTypes.func,
+  onToggleDone: PropTypes.func,
+  onChangeLabel: PropTypes.func,
+  onStartTimer: PropTypes.func,
+  onStopTimer: PropTypes.func,
+};
+
+export default TaskList;

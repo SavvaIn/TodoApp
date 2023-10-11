@@ -1,52 +1,31 @@
+import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import './Footer.css';
 
-import { TasksFilter } from '../TasksFilter/TasksFilter';
-import { FILTER_ALL, FILTER_ACTIVE, FILTER_COMPLETED } from '../../assets/constants';
+import TasksFilter from '../TasksFilter';
 
-function Footer({ currentFilter, tasksLeft, onClearCompleted, onFilterChange }) {
-  const filterOptions = [
-    { name: FILTER_ALL, label: 'All' },
-    { name: FILTER_ACTIVE, label: 'Active' },
-    { name: FILTER_COMPLETED, label: 'Completed' },
-  ];
-
-  const filterElements = filterOptions.map(({ name, label }) => {
-    const isActive = name === currentFilter;
-
-    const filterClass = classNames({
-      selected: isActive,
-    });
-
-    return (
-      <TasksFilter
-        key={name}
-        className={filterClass}
-        name={label}
-        onFilterChange={() => {
-          onFilterChange(name);
-        }}
-      />
-    );
-  });
-
+function Footer({ todoCount, filter, onFilterChange, onClearCompleted }) {
   return (
-    <>
-      <span className="todo-count">{tasksLeft} items left</span>
-      <ul className="filters">{filterElements}</ul>
-      <button className="clear-completed" type="button" onClick={onClearCompleted}>
+    <footer className="footer">
+      <span className="todo-count">{`${todoCount} items left`}</span>
+      <TasksFilter filter={filter} onFilterChange={onFilterChange} />
+      <button type="button" className="clear-completed" onClick={onClearCompleted}>
         Clear completed
       </button>
-    </>
+    </footer>
   );
 }
-
-Footer.propTypes = {
-  currentFilter: PropTypes.string.isRequired,
-  tasksLeft: PropTypes.number.isRequired,
-  onClearCompleted: PropTypes.func.isRequired,
-  onFilterChange: PropTypes.func.isRequired,
+Footer.defaultProps = {
+  todoCount: 0,
+  filter: 'all',
+  onFilterChange: () => {},
+  onClearCompleted: () => {},
 };
 
-export { Footer };
+Footer.propTypes = {
+  todoCount: PropTypes.number,
+  filter: PropTypes.string,
+  onFilterChange: PropTypes.func,
+  onClearCompleted: PropTypes.func,
+};
+
+export default Footer;
