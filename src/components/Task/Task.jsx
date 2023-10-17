@@ -14,8 +14,8 @@ export default class Task extends Component {
     created: new Date(),
     onStartTimer: () => {},
     onStopTimer: () => {},
-    minutes: 'Default minutes',
-    seconds: 'Default seconds',
+    minutes: 0,
+    seconds: 0,
   };
 
   static propTypes = {
@@ -27,14 +27,15 @@ export default class Task extends Component {
     created: PropTypes.instanceOf(Date),
     onStartTimer: PropTypes.func,
     onStopTimer: PropTypes.func,
-    minutes: PropTypes.string,
-    seconds: PropTypes.string,
+    minutes: PropTypes.number,
+    seconds: PropTypes.number,
   };
 
   state = {
     edited: false,
     newLabel: this.props.label,
     createdFormat: formatDistanceToNow(this.props.created, { includeSeconds: true }),
+    isTimerRunning: false,
   };
 
   componentDidMount() {
@@ -67,18 +68,29 @@ export default class Task extends Component {
   };
 
   render() {
-    const { label, onDeleted, done, onStartTimer, onStopTimer, minutes, seconds } = this.props;
+    const { label, onDeleted, done, onStartTimer, onStopTimer, minutes, seconds, id } = this.props;
     const { edited, newLabel, createdFormat } = this.state;
+
     let classNames = '';
+
     classNames += done ? ' completed' : '';
     classNames += edited ? ' editing' : '';
+
+    const parsedMinutes = parseInt(minutes, 10);
+    const parsedSeconds = parseInt(seconds, 10);
+
     return (
       <li className={`${classNames}`}>
         <div className="view">
           <input className="toggle" checked={done} type="checkbox" onChange={this.CheckboxChange} />
           <label>
             <span className="title">{label}</span>
-            <Timer onStartTimer={onStartTimer} onStopTimer={onStopTimer} minutes={minutes} seconds={seconds} />
+            <Timer
+              onStartTimer={() => onStartTimer(id, minutes, seconds)}
+              onStopTimer={onStopTimer}
+              minutes={parsedMinutes}
+              seconds={parsedSeconds}
+            />
             <span className="description">{`created ${createdFormat} ago`}</span>
           </label>
 

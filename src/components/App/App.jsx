@@ -27,6 +27,16 @@ export default class App extends Component {
   });
 
   addItem = (text, minutes, seconds) => {
+    if (
+      isNaN(parseInt(minutes, 10)) ||
+      isNaN(parseInt(seconds, 10)) ||
+      parseInt(minutes, 10) < 0 ||
+      parseInt(seconds, 10) < 0 ||
+      text.length <= 0
+    ) {
+      alert('Invalid input. Please enter valid values for minutes and seconds.');
+      return;
+    }
     const newItem = this.createTodoItem(text);
     newItem.minutes = minutes;
     newItem.seconds = seconds;
@@ -40,12 +50,19 @@ export default class App extends Component {
   };
 
   deleteItem = (id) => {
-    this.setState(({ todoItem }) => {
-      const idx = todoItem.findIndex((el) => el.id === id);
-      const newArray = [...todoItem.slice(0, idx), ...todoItem.slice(idx + 1)];
-      return {
-        todoItem: newArray,
-      };
+    clearInterval(this.state.timerId);
+    this.setState(({ todoItem, activeTaskId }) => {
+      const taskToDelete = todoItem.find((item) => item.id === id);
+      if (taskToDelete) {
+        const updatedTodoItem = todoItem.filter((item) => item.id !== id);
+        const updatedActiveTaskId = activeTaskId === id ? null : activeTaskId;
+        return {
+          todoItem: updatedTodoItem,
+          activeTaskId: updatedActiveTaskId,
+          timerId: null,
+        };
+      }
+      return null;
     });
   };
 
@@ -91,23 +108,20 @@ export default class App extends Component {
 
   onClearCompleted = () => {
     this.setState(({ todoItem }) => {
-      const updateTodoItem = todoItem.filter((item) => !item.done);
+      const updatedTodoItem = todoItem
+        .map((item) => {
+          if (item.timeStarted) {
+            this.stopTimer(item.id);
+          }
+          return item;
+        })
+        .filter((item) => !item.done);
+
       return {
-        todoItem: updateTodoItem,
+        todoItem: updatedTodoItem,
       };
     });
   };
-
-  // editItem = (id, editedLabel) => {
-  //   this.setState(({ todoItem }) => {
-  //     const idx = todoItem.findIndex((task) => task.id === id);
-  //     const updatedTodoItem = [...todoItem];
-  //     updatedTodoItem[idx].label = editedLabel;
-  //     return {
-  //       todoItem: updatedTodoItem,
-  //     };
-  //   });
-  // };
 
   onChangeLabel = (id, newLabel) => {
     this.setState(({ todoItem }) => {
