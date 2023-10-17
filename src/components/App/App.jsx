@@ -107,20 +107,15 @@ export default class App extends Component {
   };
 
   onClearCompleted = () => {
-    this.setState(({ todoItem }) => {
-      const updatedTodoItem = todoItem
-        .map((item) => {
-          if (item.timeStarted) {
-            this.stopTimer(item.id);
-          }
-          return item;
-        })
-        .filter((item) => !item.done);
-
-      return {
-        todoItem: updatedTodoItem,
-      };
+    this.state.todoItem.forEach((item) => {
+      if (item.timeStarted && item.done) {
+        this.stopTimer(item.id);
+      }
     });
+
+    this.setState((prevState) => ({
+      todoItem: prevState.todoItem.filter((item) => !item.done),
+    }));
   };
 
   onChangeLabel = (id, newLabel) => {
@@ -164,27 +159,28 @@ export default class App extends Component {
   };
 
   updateTime = (id) => {
-    this.setState(({ todoItem }) => {
-      const idx = todoItem.findIndex((el) => el.id === id);
-      const updatedTodoItem = [...todoItem];
-      const item = updatedTodoItem[idx];
+    this.setState((prevState) => {
+      const updatedTodoItem = prevState.todoItem.map((item) => {
+        if (item.id === id && item.timeStarted) {
+          let minutes = item.minutes;
+          let seconds = item.seconds - 1;
 
-      if (item.timeStarted) {
-        if (item.seconds > 0) {
-          item.seconds -= 1;
-        } else if (item.minutes > 0) {
-          item.minutes -= 1;
-          item.seconds = 59;
+          if (seconds < 0) {
+            minutes -= 1;
+            seconds = 59;
+          }
+
+          return {
+            ...item,
+            minutes,
+            seconds,
+            timeStarted: minutes !== 0 || seconds !== 0,
+          };
         }
+        return item;
+      });
 
-        if (item.minutes === 0 && item.seconds === 0) {
-          item.timeStarted = false;
-        }
-      }
-
-      return {
-        todoItem: updatedTodoItem,
-      };
+      return { todoItem: updatedTodoItem };
     });
   };
 
