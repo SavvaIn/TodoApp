@@ -1,35 +1,32 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import NewTaskForm from '../NewTaskForm';
-import TaskList from '../TaskList/TaskList';
+import TaskList from '../TaskList';
 import Footer from '../Footer';
 import './App.css';
 import { FILTER_ACTIVE, FILTER_ALL, FILTER_COMPLETED } from '../../assets/constants';
 
-export default class App extends Component {
-  maxId = 100;
+export default function App() {
+  const [maxId, setMaxId] = useState(100);
+  const [todoItem, setTodoItem] = useState([]);
+  const term = '';
+  const [filter, setFilter] = useState('all');
+  const created = new Date();
 
-  state = {
-    todoItem: [],
-    term: '',
-    filter: 'all',
-    created: new Date(),
-  };
-
-  createTodoItem = (label) => ({
+  const createTodoItem = (label) => ({
     label,
     done: false,
-    id: this.maxId++,
+    id: maxId + 1,
     status: '',
     timeStarted: false,
     minutes: '',
     seconds: '',
   });
 
-  addItem = (text, minutes, seconds) => {
+  const addItem = (text, minutes, seconds) => {
     if (
-      isNaN(parseInt(minutes, 10)) ||
-      isNaN(parseInt(seconds, 10)) ||
+      Number.isNaN(parseInt(minutes, 10)) ||
+      Number.isNaN(parseInt(seconds, 10)) ||
       parseInt(minutes, 10) < 0 ||
       parseInt(seconds, 10) < 0 ||
       text.length <= 0
@@ -37,53 +34,27 @@ export default class App extends Component {
       alert('Invalid input. Please enter valid values for minutes and seconds.');
       return;
     }
-    const newItem = this.createTodoItem(text);
+    const newItem = createTodoItem(text);
     newItem.minutes = minutes;
     newItem.seconds = seconds;
     newItem.created = new Date();
-    this.setState(({ todoItem }) => {
-      const newArr = [...todoItem, newItem];
-      return {
-        todoItem: newArr,
-      };
-    });
+    setTodoItem([...todoItem, newItem]);
+    setMaxId(maxId + 1);
   };
 
-  deleteItem = (id) => {
-    clearInterval(this.state.timerId);
-    this.setState(({ todoItem, activeTaskId }) => {
-      const taskToDelete = todoItem.find((item) => item.id === id);
-      if (taskToDelete) {
-        const updatedTodoItem = todoItem.filter((item) => item.id !== id);
-        const updatedActiveTaskId = activeTaskId === id ? null : activeTaskId;
-        return {
-          todoItem: updatedTodoItem,
-          activeTaskId: updatedActiveTaskId,
-          timerId: null,
-        };
-      }
-      return null;
-    });
+  const deleteItem = (id) => {
+    setTodoItem(todoItem.filter((el) => el.id !== id));
   };
 
-  toggleProperty = (arr, id, propName) => {
-    const idx = arr.findIndex((property) => property.id === id);
-    const oldItem = arr[idx];
-    const newItem = {
-      ...oldItem,
-      [propName]: !oldItem[propName],
-    };
-    return [...arr.slice(0, idx), newItem, ...arr.slice(idx + 1)];
+  const toggleProperty = (arr, id, propName) =>
+    arr.map((item) => (item.id === id ? { ...item, [propName]: !item[propName] } : item));
+
+  const onToggleDone = (id) => {
+    setTodoItem(toggleProperty(todoItem, id, 'done'));
   };
 
-  onToggleDone = (id) => {
-    this.setState(({ todoItem }) => ({
-      todoItem: this.toggleProperty(todoItem, id, 'done'),
-    }));
-  };
-
-  filter = (items, filter) => {
-    switch (filter) {
+  const filterItems = (items, filters) => {
+    switch (filters) {
       case FILTER_ALL:
         return items;
       case FILTER_ACTIVE:
@@ -95,127 +66,128 @@ export default class App extends Component {
     }
   };
 
-  onFilterChange = (filter) => {
-    this.setState({ filter });
+  const onFilterChange = (newFilter) => {
+    setFilter(newFilter);
   };
 
-  search = (items, term) => {
-    if (term.length === 0) {
+  const search = (items, searchTerm) => {
+    if (searchTerm.length === 0) {
       return items;
     }
-    return items.filter((item) => item.label.indexOf(term) > -1);
+    return items.filter((item) => item.label.indexOf(searchTerm) > -1);
   };
 
-  onClearCompleted = () => {
-    this.state.todoItem.forEach((item) => {
-      if (item.timeStarted && item.done) {
-        this.stopTimer(item.id);
+  const onClearCompleted = () => {
+    setTodoItem(todoItem.filter((item) => !item.done));
+  };
+
+  const onChangeLabel = (id, newLabel) => {
+    setTodoItem((prevTodoItem) => {
+      const index = prevTodoItem.findIndex((el) => el.id === id);
+      const updatedItem = { ...prevTodoItem[index], label: newLabel };
+      return [...prevTodoItem.slice(0, index), updatedItem, ...prevTodoItem.slice(index + 1)];
+    });
+  };
+
+  const updateTime = (id) => {
+    setTodoItem((prevTodoItem) => {
+      const idx = prevTodoItem.findIndex((el) => el.id === id);
+      if (idx === -1) {
+        return prevTodoItem;
       }
-    });
 
-    this.setState((prevState) => ({
-      todoItem: prevState.todoItem.filter((item) => !item.done),
-    }));
+      const updatedTodoItem = [...prevTodoItem];
+      const item = updatedTodoItem[idx];
+
+      if (item && item.timeStarted) {
+        if (item.seconds > 0) {
+          item.seconds -= 1;
+        } else if (item.minutes > 0) {
+          item.minutes -= 1;
+          item.seconds = 59;
+        }
+
+        if (item.minutes === 0 && item.seconds === 0) {
+          item.timeStarted = false;
+        }
+      }
+
+      return updatedTodoItem;
+    });
   };
 
-  onChangeLabel = (id, newLabel) => {
-    this.setState(({ todoItem }) => {
-      const index = todoItem.findIndex((task) => task.id === id);
-      const updatedItem = { ...todoItem[index], label: newLabel };
-      return {
-        todoItem: [...todoItem.slice(0, index), updatedItem, ...todoItem.slice(index + 1)],
-      };
-    });
-  };
+  const startTimer = (id) => {
+    const prevTimerId = todoItem.find((item) => item.id === id).timerId;
+    if (prevTimerId) {
+      clearInterval(prevTimerId);
+    }
 
-  startTimer = (id) => {
-    this.setState(({ todoItem }) => {
-      const idx = todoItem.findIndex((el) => el.id === id);
-      const updatedTodoItem = [...todoItem];
+    setTodoItem((prevTodoItem) => {
+      const idx = prevTodoItem.findIndex((el) => el.id === id);
+      const updatedTodoItem = [...prevTodoItem];
       updatedTodoItem[idx].timeStarted = true;
-      return {
-        todoItem: updatedTodoItem,
-      };
-    });
 
-    const timerId = setInterval(() => {
-      this.updateTime(id);
+      const timerId = setInterval(() => {
+        updateTime(id);
+      }, 1000);
+
+      updatedTodoItem[idx].timerId = timerId;
+      return updatedTodoItem;
+    });
+  };
+
+  const stopTimer = (id) => {
+    clearInterval(todoItem.find((item) => item.id === id).timerId);
+
+    setTodoItem((prevTodoItem) => {
+      const idx = prevTodoItem.findIndex((el) => el.id === id);
+      const updatedTodoItem = [...prevTodoItem];
+      updatedTodoItem[idx].timeStarted = false;
+      return updatedTodoItem;
+    });
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      todoItem.forEach((item) => {
+        if (item.timeStarted) {
+          updateTime(item.id);
+        }
+      });
     }, 1000);
 
-    this.setState({ timerId });
-  };
+    return () => clearInterval(timer);
+  }, [todoItem]);
 
-  stopTimer = (id) => {
-    clearInterval(this.state.timerId);
+  const visibleItems = filterItems(search(todoItem, term), filter);
 
-    this.setState(({ todoItem }) => {
-      const idx = todoItem.findIndex((el) => el.id === id);
-      const updatedTodoItem = [...todoItem];
-      updatedTodoItem[idx].timeStarted = false;
-      return {
-        todoItem: updatedTodoItem,
-      };
-    });
-  };
+  const doneCount = todoItem.filter((el) => el.done).length;
+  const todoCount = todoItem.length - doneCount;
 
-  updateTime = (id) => {
-    this.setState((prevState) => {
-      const updatedTodoItem = prevState.todoItem.map((item) => {
-        if (item.id === id && item.timeStarted) {
-          let minutes = item.minutes;
-          let seconds = item.seconds - 1;
+  return (
+    <section className="todoapp">
+      <header className="header">
+        <h1>todos</h1>
+        <NewTaskForm addItem={addItem} />
+      </header>
 
-          if (seconds < 0) {
-            minutes -= 1;
-            seconds = 59;
-          }
-
-          return {
-            ...item,
-            minutes,
-            seconds,
-            timeStarted: minutes !== 0 || seconds !== 0,
-          };
-        }
-        return item;
-      });
-
-      return { todoItem: updatedTodoItem };
-    });
-  };
-
-  render() {
-    const { todoItem, filter, term } = this.state;
-    const vusableItems = this.filter(this.search(todoItem, term), filter);
-
-    const doneCount = todoItem.filter((el) => el.done).length;
-    const todoCount = todoItem.length - doneCount;
-
-    return (
-      <section className="todoapp">
-        <header className="header">
-          <h1>todos</h1>
-          <NewTaskForm addItem={this.addItem} />
-        </header>
-
-        <section className="main">
-          <TaskList
-            todoItem={vusableItems}
-            onDeleted={this.deleteItem}
-            onToggleDone={this.onToggleDone}
-            onChangeLabel={this.onChangeLabel}
-            created={this.created}
-            onStartTimer={this.startTimer}
-            onStopTimer={this.stopTimer}
-          />
-          <Footer
-            filter={filter}
-            todoCount={todoCount}
-            onFilterChange={this.onFilterChange}
-            onClearCompleted={this.onClearCompleted}
-          />
-        </section>
+      <section className="main">
+        <TaskList
+          todoItem={visibleItems}
+          onDeleted={deleteItem}
+          onToggleDone={onToggleDone}
+          onChangeLabel={onChangeLabel}
+          created={created}
+          onStartTimer={startTimer}
+          onStopTimer={stopTimer}
+        />
+        <Footer
+          filter={filter}
+          todoCount={todoCount}
+          onFilterChange={onFilterChange}
+          onClearCompleted={onClearCompleted}
+        />
       </section>
-    );
-  }
+    </section>
+  );
 }

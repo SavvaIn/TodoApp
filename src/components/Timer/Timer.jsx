@@ -1,52 +1,40 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-class Timer extends Component {
-  static propTypes = {
-    onStartTimer: PropTypes.func.isRequired,
-    onStopTimer: PropTypes.func.isRequired,
-    minutes: PropTypes.number,
-    seconds: PropTypes.number,
-  };
+function Timer({ onStartTimer, onStopTimer, minutes, seconds }) {
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-  state = {
-    isTimerRunning: false,
-  };
-
-  toggleTimer = () => {
-    const { isTimerRunning } = this.state;
-    const { onStartTimer, onStopTimer } = this.props;
-
+  const toggleTimer = () => {
     if (!isTimerRunning) {
       onStartTimer();
     } else {
       onStopTimer();
     }
 
-    this.setState((prevState) => ({
-      isTimerRunning: !prevState.isTimerRunning,
-    }));
+    setIsTimerRunning(!isTimerRunning);
   };
 
-  render() {
-    const { isTimerRunning } = this.state;
-    const { minutes, seconds } = this.props;
+  const parsedMinutes = parseInt(minutes, 10);
+  const parsedSeconds = parseInt(seconds, 10);
 
-    const parsedMinutes = parseInt(minutes, 10);
-    const parsedSeconds = parseInt(seconds, 10);
-
-    return (
-      <span className="description">
-        <button
-          className={`icon ${isTimerRunning ? 'icon-pause' : 'icon-play'}`}
-          onClick={this.toggleTimer}
-          type="button"
-          aria-label={isTimerRunning ? 'Stop Timer' : 'Start Timer'}
-        />
-        {`${parsedMinutes}:${parsedSeconds}`}
-      </span>
-    );
-  }
+  return (
+    <span className="description">
+      <button
+        className={`icon ${isTimerRunning ? 'icon-pause' : 'icon-play'}`}
+        onClick={toggleTimer}
+        type="button"
+        aria-label={isTimerRunning ? 'Stop Timer' : 'Start Timer'}
+      />
+      {`${parsedMinutes}:${parsedSeconds}`}
+    </span>
+  );
 }
+
+Timer.propTypes = {
+  onStartTimer: PropTypes.func.isRequired,
+  onStopTimer: PropTypes.func.isRequired,
+  minutes: PropTypes.number,
+  seconds: PropTypes.number,
+};
 
 export default Timer;
