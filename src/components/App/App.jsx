@@ -25,18 +25,17 @@ export default function App() {
 
   const addItem = (text, minutes, seconds) => {
     if (
+      text.trim() === '' ||
       Number.isNaN(parseInt(minutes, 10)) ||
-      Number.isNaN(parseInt(seconds, 10)) ||
-      parseInt(minutes, 10) < 0 ||
-      parseInt(seconds, 10) < 0 ||
-      text.length <= 0
+      (seconds !== '' && (Number.isNaN(parseInt(seconds, 10)) || parseInt(seconds, 10) < 0)) ||
+      parseInt(minutes, 10) < 0
     ) {
-      alert('Invalid input. Please enter valid values for minutes and seconds.');
+      alert('Invalid input. Please enter valid values for minutes.');
       return;
     }
     const newItem = createTodoItem(text);
     newItem.minutes = minutes;
-    newItem.seconds = seconds;
+    newItem.seconds = seconds || '00';
     newItem.created = new Date();
     setTodoItem([...todoItem, newItem]);
     setMaxId(maxId + 1);
@@ -121,15 +120,15 @@ export default function App() {
     if (prevTimerId) {
       clearInterval(prevTimerId);
     }
+    const timerId = setInterval(() => {
+      updateTime(id);
+    }, 1000);
 
     setTodoItem((prevTodoItem) => {
       const idx = prevTodoItem.findIndex((el) => el.id === id);
       const updatedTodoItem = [...prevTodoItem];
       updatedTodoItem[idx].timeStarted = true;
-
-      const timerId = setInterval(() => {
-        updateTime(id);
-      }, 1000);
+      updatedTodoItem[idx].timerId = timerId;
 
       updatedTodoItem[idx].timerId = timerId;
       return updatedTodoItem;
